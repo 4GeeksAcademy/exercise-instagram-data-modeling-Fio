@@ -1,56 +1,62 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
+from enum import Enum as PyEnum
 
 Base = declarative_base()
 
-# usuarios de Instagram con un nombre de usuario único, email y contraseña
-class User (Base): 
+
+class User(Base):
     __tablename__ = 'user'
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
-    email = Column (String(250), nullable= False)
-    password = Column (String(100), nullable = False)
+    username = Column(String(250), nullable=False)
+    firstname = Column(String(250), nullable=False)
+    lastname = Column(String(250), nullable=False)
+    email = Column(String(250), unique=True)
 
-# Comentarios.
-class Comment(Base):
-    __tablename__ = 'comments'
-    
+class Follower(Base):
+    __tablename__ = 'follower'
+
     id = Column(Integer, primary_key=True)
-    content = Column(String(500), nullable= False)
-   # create_date = Column(DataTime, default=datatime.utcnow)
-    post_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
+    user_from_id = Column(Integer, ForeignKey('user.id'))
+    user_to_id = Column(Integer, ForeignKey('user.id'))
+    
+
+class Comment(Base):
+    __tablename__ = 'comment'
+
+    id = Column(Integer, primary_key=True)
+    comment_text = Column(String(800))
+    author_id = Column (Integer, ForeignKey('user.id'))
+    post_id = Column (Integer, ForeignKey('post.id'))
+    author = relationship(User)
 
 
- # Publicación de los users , hay descripción , imágen , la relación con el user  
 class Post(Base):
-    __tablename__ = 'posts'
+    __tablename__ = 'post'
 
-    id = Column(Integer, primary_key=True) 
-    description = Column(String(255))
-    image_url = Column(String(255))
-     # create_date = Column(DataTime, default=datatime.utcnow)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    id = Column(Integer, primary_key=True)
+    user_id = Column (Integer, ForeignKey('user.id'))
+    author = relationship(User)
 
 
+class MediaType (PyEnum):
+    REEL = "reel"
+    PICTURE = "picture"
+    STORY = "story"
 
+class Media(Base):
+    __tablename__ = 'media'
 
-class Likes (Base):
-    __tablename__ = 'likes'
-    id = Column(Integer, primary_key=True) 
-    post_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-
-
-
-
-
+    id = Column(Integer, primary_key=True)
+    type = Column(Enum(MediaType))
+    url = Column (String(500))
+    post_id = Column (Integer, ForeignKey('post.id'))
 
 
 
